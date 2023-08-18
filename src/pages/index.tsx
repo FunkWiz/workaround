@@ -4,6 +4,7 @@ import Image from "next/image";
 import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { LoadingSpinner } from "~/components/loading";
 
 dayjs.extend(relativeTime);
 
@@ -13,7 +14,7 @@ const PostView = (props: PostWithUser) => {
   const { post, author } = props;
 
   return (
-    <div className="flex items-center gap-2 border-b border-slate-400 p-4">
+    <li className="flex items-center gap-2 border-b border-slate-400 p-4">
       <div>
         <Image
           src={author.imageUrl}
@@ -31,45 +32,65 @@ const PostView = (props: PostWithUser) => {
         </div>
         <div>{post.content}</div>
       </div>
-    </div>
+    </li>
   );
 };
 
 const CreatePostWizard = () => {
   const { user } = useUser();
 
-  if (!user) {
-    return null;
-  }
+  const { imageUrl } = user!;
 
   return (
-    <div className="flex gap-2">
-      <Image
-        src={user.imageUrl}
-        alt="Profile image"
-        width={60}
-        height={60}
-        className="rounded-full"
-      />
-      <input
-        placeholder="Choose emoji"
-        className="grow rounded-md border border-slate-600 bg-transparent p-2"
-      />
+    <div className="border-b border-slate-400 p-4">
+      <div className="flex gap-2">
+        <Image
+          src={imageUrl}
+          alt="Profile image"
+          width={60}
+          height={60}
+          className="rounded-full"
+        />
+        <input
+          placeholder="Type some emojis!"
+          className="grow rounded-md bg-transparent p-2 outline-none"
+        />
+      </div>
     </div>
   );
 };
 
+const Feed = () => {
+  const { data: posts, isLoading } = api.posts.getAll.useQuery();
+
+  if (isLoading)
+    return (
+      <div className="p-4">
+        <LoadingSpinner />
+      </div>
+    );
+
+  if (!posts) return <div className="p-4">No data</div>;
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {posts.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </ul>
+  );
+};
+
 export default function Home() {
-  const { isSignedIn } = useUser();
+  const { isSignedIn, isLoaded: isUserLoaded } = useUser();
+  api.posts.getAll.useQuery();
 
-  const { data, isLoading } = api.posts.getAll.useQuery();
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!data) {
-    return <div>No posts</div>;
+  if (!isSignedIn || !isUserLoaded) {
+    return (
+      <div className="absolute inset-0 z-50 flex items-center justify-center">
+        {isUserLoaded ? <SignInButton /> : <LoadingSpinner size={100} />}
+      </div>
+    );
   }
 
   return (
@@ -81,15 +102,8 @@ export default function Home() {
       </Head>
       <main className="flex h-screen justify-center">
         <div className="h-full w-full border-x border-slate-400 md:max-w-2xl">
-          <div className="border-b border-slate-400 p-4">
-            {isSignedIn && <CreatePostWizard />}
-            {!isSignedIn && <SignInButton />}
-          </div>
-          <div className="flex flex-col space-y-2">
-            {data.map((post) => (
-              <PostView key={post.post.id} {...post} />
-            ))}
-          </div>
+          <CreatePostWizard />
+          <Feed />
         </div>
       </main>
     </>
