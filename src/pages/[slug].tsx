@@ -7,6 +7,26 @@ import { prisma } from "~/server/db";
 import type { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import { PageLayout } from "~/components/layout";
 import Image from "next/image";
+import { LoadingSpinner } from "~/components/loading";
+import { PostView } from "~/components/postview";
+
+const ProfileFeed = (props: { userId: string }) => {
+  const { data: posts, isLoading } = api.posts.getPostsByUserId.useQuery({
+    userId: props.userId,
+  });
+
+  if (isLoading) return <LoadingSpinner size={50} />;
+
+  if (!posts || posts.length === 0) return <div>User has not posted</div>;
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {posts.map((fullPost) => (
+        <PostView key={fullPost.post.id} {...fullPost} />
+      ))}
+    </ul>
+  );
+};
 
 const ProfilePage: NextPage<{ email: string }> = ({ email }) => {
   const { data: user } = api.profile.getUserByEmail.useQuery({
@@ -33,6 +53,9 @@ const ProfilePage: NextPage<{ email: string }> = ({ email }) => {
           </div>
           <div className="translate-y-[82px] p-4 text-2xl font-bold">
             {user.email}
+          </div>
+          <div className="translate-y-[82px] p-4">
+            <ProfileFeed userId={user.id} />
           </div>
         </div>
       </PageLayout>

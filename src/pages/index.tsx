@@ -1,47 +1,11 @@
 import { SignInButton, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
-import { type RouterOutputs, api } from "~/utils/api";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
+import { api } from "~/utils/api";
 import { LoadingSpinner } from "~/components/loading";
 import { useState } from "react";
-import Link from "next/link";
 import { PageLayout } from "~/components/layout";
-
-dayjs.extend(relativeTime);
-
-type PostWithUser = RouterOutputs["posts"]["getAll"][number];
-
-const PostView = (props: PostWithUser) => {
-  const { post, author } = props;
-
-  return (
-    <li className="flex gap-2 border-b border-slate-400 p-4">
-      <div className="shrink-0">
-        <Image
-          src={author.imageUrl}
-          alt="Author image"
-          width={40}
-          height={40}
-          className="rounded-full"
-        />
-      </div>
-      <div>
-        <div className="flex gap-1 font-bold">
-          <Link href={`@${author.email}`}>
-            <span> {`@${author.email}`}</span>
-          </Link>
-          <Link href={`/post/${post.id}`}>
-            <span className="font-thin">·</span>
-            <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
-          </Link>
-        </div>
-        <p className="text-2xl">{post.content}</p>
-      </div>
-    </li>
-  );
-};
+import { PostView } from "~/components/postview";
 
 const CreatePostWizard = () => {
   const { user } = useUser();
