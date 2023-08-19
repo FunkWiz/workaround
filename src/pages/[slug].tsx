@@ -42,7 +42,7 @@ const ProfilePage: NextPage<{ email: string }> = ({ email }) => {
       </Head>
       <PageLayout>
         <div className="flex flex-col gap-2">
-          <div className="bg-slate-600 p-4">
+          <div className="mb-[82px] bg-slate-600 p-4">
             <Image
               src={user.imageUrl}
               alt="user image"
@@ -51,10 +51,8 @@ const ProfilePage: NextPage<{ email: string }> = ({ email }) => {
               className="translate-y-[82px] rounded-full border-4 border-slate-900"
             />
           </div>
-          <div className="translate-y-[82px] p-4 text-2xl font-bold">
-            {user.email}
-          </div>
-          <div className="translate-y-[82px] p-4">
+          <div className="p-4 text-2xl font-bold">{user.email}</div>
+          <div>
             <ProfileFeed userId={user.id} />
           </div>
         </div>

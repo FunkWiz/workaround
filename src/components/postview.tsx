@@ -12,13 +12,13 @@ export const PostView = (props: PostWithUser) => {
   const { post, author } = props;
 
   return (
-    <li className="flex gap-2 border-b border-slate-400 p-4">
+    <li className="flex items-center gap-2 border-b border-slate-400 p-4">
       <div className="shrink-0">
         <Image
           src={author.imageUrl}
           alt="Author image"
-          width={40}
-          height={40}
+          width={50}
+          height={50}
           className="rounded-full"
         />
       </div>
@@ -27,9 +27,9 @@ export const PostView = (props: PostWithUser) => {
           <Link href={`@${author.email}`}>
             <span> {`@${author.email}`}</span>
           </Link>
-          <Link href={`/post/${post.id}`}>
-            <span className="font-thin">·</span>
-            <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
+          <Link href={`/post/${post.id}`} className="flex gap-1 font-thin">
+            <span className="font-semibold">·</span>
+            <span>{dayjs(post.createdAt).fromNow()}</span>
           </Link>
         </div>
         <p className="text-2xl">{post.content}</p>
