@@ -5,6 +5,7 @@ import { type RouterOutputs, api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { LoadingSpinner } from "~/components/loading";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
@@ -14,7 +15,7 @@ const PostView = (props: PostWithUser) => {
   const { post, author } = props;
 
   return (
-    <li className="flex items-center gap-2 border-b border-slate-400 p-4">
+    <li className="flex gap-2 border-b border-slate-400 p-4">
       <div>
         <Image
           src={author.imageUrl}
@@ -30,7 +31,7 @@ const PostView = (props: PostWithUser) => {
           <span className="font-thin">·</span>
           <span className="font-thin">{dayjs(post.createdAt).fromNow()}</span>
         </div>
-        <div>{post.content}</div>
+        <p className="text-2xl">{post.content}</p>
       </div>
     </li>
   );
@@ -38,12 +39,25 @@ const PostView = (props: PostWithUser) => {
 
 const CreatePostWizard = () => {
   const { user } = useUser();
-
   const { imageUrl } = user!;
+  const [input, setInput] = useState("");
+  const ctx = api.useContext();
+  const { mutate, isLoading: isPosting } = api.posts.create.useMutation({
+    onSuccess: () => {
+      setInput("");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
+
+  const handleSubmit = () => {
+    if (!input || isPosting) return;
+
+    mutate({ content: input });
+  };
 
   return (
     <div className="border-b border-slate-400 p-4">
-      <div className="flex gap-2">
+      <div className="flex items-center gap-2">
         <Image
           src={imageUrl}
           alt="Profile image"
@@ -53,8 +67,18 @@ const CreatePostWizard = () => {
         />
         <input
           placeholder="Type some emojis!"
-          className="grow rounded-md bg-transparent p-2 outline-none"
+          className="grow rounded-md bg-transparent p-2 outline-none transition-opacity disabled:opacity-40"
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          disabled={isPosting}
         />
+        {isPosting ? (
+          <LoadingSpinner />
+        ) : (
+          <button type="button" onClick={handleSubmit}>
+            Submit
+          </button>
+        )}
       </div>
     </div>
   );
@@ -83,7 +107,6 @@ const Feed = () => {
 
 export default function Home() {
   const { isSignedIn, isLoaded: isUserLoaded } = useUser();
-  api.posts.getAll.useQuery();
 
   if (!isSignedIn || !isUserLoaded) {
     return (
